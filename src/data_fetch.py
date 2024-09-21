@@ -59,7 +59,7 @@ def fetch_ghg_data(save_path='data/ghg_map.png'):
             with open(save_path, 'wb') as file:
                 file.write(response.content)
             logging.info(f"GHG data saved to {save_path}.")
-        else:
+        else: #handle errors and Log info
             logging.error(f"The fetched content is not an image/png. Content-Type: {response.headers['Content-Type']}")
             logging.debug(f"Response content: {response.text[:500]}")  # Log the first 500 characters of the response
             logging.info("Fetching WMS capabilities for diagnostics...")

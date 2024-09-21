@@ -29,18 +29,28 @@ def preprocess_data(data):
     """
     try:
         logging.info("Preprocessing data...")
-        df = pd.DataFrame(data)
         
-        # Convert categorical features to numeric
-        label_encoder = LabelEncoder()
-        df['land_use_encoded'] = label_encoder.fit_transform(df['land_use'])
+        # Ensure the data is structured correctly
+        current_emissions = data['X_train'][:, 0]
+        land_use_encoded = data['X_train'][:, 1]
+        population_density = data['X_train'][:, 2]
+        temperature = data['X_train'][:, 3]
+        sequestration_potential = data['X_train'][:, 4]
         
-        # Features and target variable
-        X = df[['current_emissions', 'land_use_encoded', 'population_density', 'temperature', 'sequestration_potential']].values
-        y = df['future_emissions'].values
+        future_emissions = data['y_train']
+
+        # Create a DataFrame from the features
+        df = pd.DataFrame({
+            'current_emissions': current_emissions,
+            'land_use_encoded': land_use_encoded,
+            'population_density': population_density,
+            'temperature': temperature,
+            'sequestration_potential': sequestration_potential,
+            'future_emissions': future_emissions
+        })
 
         logging.info("Data preprocessing completed.")
-        return X, y
+        return df
     except Exception as e:
         logging.error(f"Error during data preprocessing: {e}")
         raise
@@ -89,7 +99,11 @@ def main():
     data = load_data('data/preprocessed_data.npy')
 
     # Preprocess data
-    X, y = preprocess_data(data)
+    df = preprocess_data(data)
+
+    # Split the data into features and target variable
+    X = df.drop(columns='future_emissions').values
+    y = df['future_emissions'].values
 
     # Split the data into training and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
