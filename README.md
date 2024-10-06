@@ -27,7 +27,6 @@ The GHG Emission Model is a web-based application designed to visualize greenhou
 ### Prerequisites
 Make sure you have the following installed:
 - Python 3.x
-- Node.js and npm (if you're using any front-end build tools)
 
 ### Clone the Repository
 ```bash
