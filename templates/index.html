@@ -6,6 +6,7 @@
     <title>GHG Monitoring</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         body {
             background-color: #f8f9fa;
@@ -35,7 +36,7 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
     let cities = [];  // To store city data
 
@@ -47,19 +48,19 @@
         });
 
         function initMap() {
-            const map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 2,
-                center: {lat: 20, lng: 0}
-            });
+            const map = L.map('map').setView([20, 0], 2);  // Initial map position and zoom level
+            
+            // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
 
+            // Add markers for each city
             cities.forEach(city => {
-                const marker = new google.maps.Marker({
-                    position: city.coordinates,
-                    map: map,
-                    title: city.name
-                });
+                const marker = L.marker([city.coordinates.lat, city.coordinates.lon]).addTo(map);
+                marker.bindPopup(city.name);
 
-                marker.addListener('click', function() {
+                marker.on('click', function() {
                     $.ajax({
                         url: '/fetch_data',
                         type: 'POST',

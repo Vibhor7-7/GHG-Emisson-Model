@@ -4,8 +4,8 @@ import logging
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error
-from sklearn.preprocessing import LabelEncoder
 import joblib
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s: %(message)s')
@@ -94,6 +94,21 @@ def save_model(model, file_path):
         logging.error(f"Error saving the model: {e}")
         raise
 
+def load_trained_model(file_path='data/trained_model.pkl'):
+    """Load and return the trained model."""
+    try:
+        model = joblib.load(file_path)
+        return model
+    except Exception as e:
+        logging.error(f"Error loading model: {e}")
+        return None
+
+def predict_emissions(model, current_emissions, population_density, temperature, sequestration_potential, land_use_numeric):
+    """Predict future emissions based on input features."""
+    input_data = np.array([[current_emissions, population_density, temperature, sequestration_potential, land_use_numeric]])
+    prediction = model.predict(input_data)
+    return prediction[0]
+
 def main():
     # Load data
     data = load_data('data/preprocessed_data.npy')
@@ -105,17 +120,22 @@ def main():
     X = df.drop(columns='future_emissions').values
     y = df['future_emissions'].values
 
-    # Split the data into training and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Check if the model already exists
+    if os.path.exists('data/trained_model.pkl'):
+        logging.info("Loading existing model...")
+        model = load_trained_model('data/trained_model.pkl')
+    else:
+        # Split the data into training and test sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Train the model
-    model = train_model(X_train, y_train)
+        # Train the model
+        model = train_model(X_train, y_train)
+
+        # Save the model
+        save_model(model, 'data/trained_model.pkl')  # Save the newly trained model
 
     # Evaluate the model
     evaluate_model(model, X_test, y_test)
-
-    # Save the model
-    save_model(model, 'data/trained_model.pkl')
 
 if __name__ == "__main__":
     main()

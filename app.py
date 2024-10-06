@@ -28,11 +28,24 @@ def index():
 def fetch_data():
     try:
         content = request.get_json()
-        lat = content['latitude']
-        lon = content['longitude']
+        lat = content.get('latitude')
+        lon = content.get('longitude')
+
+        # Validate inputs
+        if lat is None or lon is None:
+            return jsonify({"error": "Latitude and Longitude are required"}), 400
+
+        try:
+            lat = float(lat)
+            lon = float(lon)
+        except ValueError:
+            return jsonify({"error": "Invalid latitude or longitude"}), 400
+
+        # Fetch and preprocess data
         fetch_ghg_data()  # Fetch GHG data from the source
         df = preprocess_data()  # Preprocess the fetched data
-        return jsonify({"message": f"Data fetched for location ({lat}, {lon})!"}), 200
+
+        return jsonify({"message": f"Data fetched and processed for location ({lat}, {lon})!"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -53,8 +66,19 @@ def train():
 @app.route('/recommend', methods=['POST'])
 def recommend():
     try:
-        lat = request.json['latitude']
-        lon = request.json['longitude']
+        lat = request.json.get('latitude')
+        lon = request.json.get('longitude')
+
+        # Validate inputs
+        if lat is None or lon is None:
+            return jsonify({"error": "Latitude and Longitude are required"}), 400
+
+        try:
+            lat = float(lat)
+            lon = float(lon)
+        except ValueError:
+            return jsonify({"error": "Invalid latitude or longitude"}), 400
+
         df = preprocess_data()  # Ensure data is preprocessed
         
         recommendations = recommend_land_use_changes(df, lat, lon)
